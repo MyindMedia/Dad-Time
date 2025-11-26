@@ -18,6 +18,13 @@ export default function Expenses() {
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [childId, setChildId] = useState<string | null>(null)
+  const [manualAmount, setManualAmount] = useState('')
+  const [manualCategory, setManualCategory] = useState('other')
+  const [manualDate, setManualDate] = useState('')
+  const [manualMerchant, setManualMerchant] = useState('')
+  const [manualPaymentMethod, setManualPaymentMethod] = useState('')
+  const [manualNotes, setManualNotes] = useState('')
+  const [manualFile, setManualFile] = useState<File | null>(null)
 
   const categories = [
     'Food & Dining',
@@ -168,6 +175,105 @@ export default function Expenses() {
 
         <div className="mb-6">
           <ChildSelector value={childId} onChange={setChildId} />
+        </div>
+
+        <div className="mb-8 border rounded-lg p-4">
+          <h2 className="text-lg font-semibold text-gray-900 mb-3">Add Manual Expense</h2>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault()
+              setUploading(true)
+              try {
+                const { data: { user } } = await supabase.auth.getUser()
+                if (!user) throw new Error('User not authenticated')
+
+                let receiptId: string | null = null
+                if (manualFile) {
+                  const path = `${user.id}/${Date.now()}-${manualFile.name}`
+                  const up = await supabase.storage.from('receipts').upload(path, manualFile)
+                  if (up.error) throw up.error
+                  receiptId = path
+                }
+
+                const isoDate = manualDate ? new Date(manualDate).toISOString() : new Date().toISOString()
+                const amountNum = Number(manualAmount || '0')
+
+                const ins = await supabase.from('expenses').insert([
+                  {
+                    user_id: user.id,
+                    child_id: childId,
+                    date: isoDate,
+                    amount: amountNum,
+                    category: manualCategory,
+                    merchant_name: manualMerchant || null,
+                    payment_method: manualPaymentMethod || null,
+                    receipt_image_id: receiptId,
+                    reimbursement_status: 'not_requested',
+                    notes: manualNotes ? `${manualNotes} (uploaded_at=${new Date().toISOString()})` : `uploaded_at=${new Date().toISOString()}`
+                  }
+                ])
+                if (ins.error) throw ins.error
+                setManualAmount('')
+                setManualCategory('other')
+                setManualDate('')
+                setManualMerchant('')
+                setManualPaymentMethod('')
+                setManualNotes('')
+                setManualFile(null)
+                await fetchExpenses()
+                alert('Manual expense saved')
+              } catch (err) {
+                console.error(err)
+                alert('Failed to save manual expense')
+              } finally {
+                setUploading(false)
+              }
+            }}
+          >
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Amount</label>
+                <input type="number" step="0.01" value={manualAmount} onChange={(e) => setManualAmount(e.target.value)} className="w-full px-3 py-2 border rounded-md" placeholder="0.00" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                <select value={manualCategory} onChange={(e) => setManualCategory(e.target.value)} className="w-full px-3 py-2 border rounded-md">
+                  <option value="food">Food</option>
+                  <option value="transport">Transport</option>
+                  <option value="medical">Medical</option>
+                  <option value="education">Education</option>
+                  <option value="clothing">Clothing</option>
+                  <option value="activities">Activities</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Expense Date/Time</label>
+                <input type="datetime-local" value={manualDate} onChange={(e) => setManualDate(e.target.value)} className="w-full px-3 py-2 border rounded-md" />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Merchant</label>
+                <input type="text" value={manualMerchant} onChange={(e) => setManualMerchant(e.target.value)} className="w-full px-3 py-2 border rounded-md" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Payment Method</label>
+                <input type="text" value={manualPaymentMethod} onChange={(e) => setManualPaymentMethod(e.target.value)} className="w-full px-3 py-2 border rounded-md" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Screenshot (optional)</label>
+                <input type="file" accept="image/*" onChange={(e) => setManualFile(e.target.files?.[0] || null)} className="w-full" />
+              </div>
+            </div>
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+              <input type="text" value={manualNotes} onChange={(e) => setManualNotes(e.target.value)} className="w-full px-3 py-2 border rounded-md" placeholder="Optional notes" />
+            </div>
+            <div className="mt-4">
+              <button type="submit" disabled={uploading} className="px-4 py-2 rounded-md bg-green-600 text-white disabled:opacity-50">Save Manual Expense</button>
+            </div>
+          </form>
         </div>
 
         {expenses.length === 0 ? (

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { haversineMiles, formatDuration } from '../lib/geo'
 import ChildSelector from '../components/ChildSelector'
+import { loadGoogleMaps, isMapsReady } from '../lib/maps'
 
 export default function GPSTracking() {
   const [tracking, setTracking] = useState(false)
@@ -11,6 +12,10 @@ export default function GPSTracking() {
   const [route, setRoute] = useState<{ lat: number; lon: number; t: number }[]>([])
   const [error, setError] = useState('')
   const [childId, setChildId] = useState<string | null>(null)
+  const mapDivRef = useRef<HTMLDivElement | null>(null)
+  const mapRef = useRef<any>(null)
+  const polylineRef = useRef<any>(null)
+  const [mapsReady, setMapsReady] = useState(false)
   const startRef = useRef<number | null>(null)
   const watchIdRef = useRef<number | null>(null)
 
@@ -22,6 +27,14 @@ export default function GPSTracking() {
       return () => clearInterval(interval)
     }
   }, [tracking])
+
+  useEffect(() => {
+    const key = import.meta.env.VITE_GOOGLE_MAPS_BROWSER_KEY as string
+    if (!key) return
+    loadGoogleMaps(key)
+      .then(() => setMapsReady(true))
+      .catch((e) => setError(`Maps load error: ${e.message}`))
+  }, [])
 
   const start = async () => {
     setError('')
@@ -46,6 +59,28 @@ export default function GPSTracking() {
               setCost(parseFloat((nd * 0.70).toFixed(2)))
               return nd
             })
+          }
+          // Maps draw/update
+          if (mapsReady && mapDivRef.current) {
+            const google: any = (window as any).google
+            if (!mapRef.current) {
+              mapRef.current = new google.maps.Map(mapDivRef.current, {
+                center: { lat: coord.lat, lng: coord.lon },
+                zoom: 15,
+                mapTypeId: 'roadmap'
+              })
+              polylineRef.current = new google.maps.Polyline({
+                path: [],
+                geodesic: true,
+                strokeColor: '#2563eb',
+                strokeOpacity: 0.9,
+                strokeWeight: 4
+              })
+              polylineRef.current.setMap(mapRef.current)
+            }
+            const path = polylineRef.current.getPath()
+            path.push(new google.maps.LatLng(coord.lat, coord.lon))
+            mapRef.current.setCenter({ lat: coord.lat, lng: coord.lon })
           }
           return next
         })
@@ -101,6 +136,13 @@ export default function GPSTracking() {
 
         <div className="mb-6">
           <ChildSelector value={childId} onChange={setChildId} />
+        </div>
+
+        <div className="h-64 rounded-lg overflow-hidden bg-gray-100 mb-6">
+          <div ref={mapDivRef} className="w-full h-full" />
+          {!isMapsReady() && (
+            <div className="absolute text-sm text-gray-600 p-2">Map loads when browser key is configured.</div>
+          )}
         </div>
 
         <div className="flex gap-3 mb-6">

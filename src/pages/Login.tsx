@@ -94,6 +94,12 @@ export default function Login() {
                 Sign up here
               </Link>
             </p>
+            <p className="mt-3 text-xs text-gray-500">
+              By signing in, you agree to our{' '}
+              <Link to="/terms" className="text-blue-600 hover:text-blue-500">Terms of Service</Link>{' '}
+              and{' '}
+              <Link to="/privacy" className="text-blue-600 hover:text-blue-500">Privacy Policy</Link>.
+            </p>
           </div>
         </div>
       </div>

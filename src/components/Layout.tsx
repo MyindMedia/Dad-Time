@@ -2,6 +2,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 import wordmark from '../../assets/dad_time_horizontal_logo.svg'
 import { supabase, SUPABASE_CONFIG_OK } from '../lib/supabase'
+import PageTransition from './PageTransition'
 import {
   HomeIcon,
   ClockIcon,
@@ -169,7 +170,7 @@ export default function Layout({ children }: LayoutProps) {
                 Supabase is not configured. Set environment variables on your host: <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code>.
               </div>
             )}
-            {children}
+            <PageTransition>{children}</PageTransition>
           </div>
         </main>
       </div>
