@@ -334,7 +334,7 @@ export default function Timer() {
           <div className="text-center">
             <div className="mb-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                Time with {currentSession?.child_name}
+                Time with {childName || 'child'}
               </h2>
               {currentSession?.notes && (
                 <p className="text-gray-600">{currentSession.notes}</p>
