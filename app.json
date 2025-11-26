@@ -1,0 +1,55 @@
+{
+  "name": "Dad Time",
+  "slug": "dad-time",
+  "version": "1.0.0",
+  "platforms": ["ios"],
+  "miniApp": {
+    "enabled": true,
+    "capabilities": [
+      "location-tracking",
+      "background-location",
+      "secure-storage",
+      "evidence-export"
+    ]
+  },
+  "ios": {
+    "bundleIdentifier": "com.mindkilla.dadtime",
+    "backgroundModes": ["location", "fetch"],
+    "permissions": {
+      "NSLocationWhenInUseUsageDescription": "Dad Time uses your location to track trips during visits and transportation.",
+      "NSLocationAlwaysAndWhenInUseUsageDescription": "Dad Time needs background location to automatically detect and log trips.",
+      "NSMotionUsageDescription": "Dad Time may use motion data to improve trip detection accuracy.",
+      "NSPhotoLibraryUsageDescription": "Allow access to attach photos and screenshots to visit logs.",
+      "NSPhotoLibraryAddUsageDescription": "Allow saving generated reports and receipts to your library.",
+      "NSCameraUsageDescription": "Use camera to capture receipts and documents.",
+      "NSMicrophoneUsageDescription": "Use microphone for optional in-app voice notes.",
+      "NSUserTrackingUsageDescription": "Dad Time may use identifiers to improve analytics and app quality."
+    }
+  },
+  "privacy": {
+    "dataCategories": [
+      "location",
+      "financial",
+      "photos",
+      "documents",
+      "usage-analytics"
+    ],
+    "retentionPolicy": "user-controlled",
+    "exportOptions": ["pdf", "csv", "json"]
+  },
+  "features": {
+    "tripTracking": { "gps": true, "autoDetectTrips": true, "mileageRates": "irs-default" },
+    "expenses": { "receiptCapture": true, "categoriesAI": true },
+    "evidence": { "timestampedLogs": true, "immutableRecords": true, "export": true },
+    "conversations": { "inAppMessaging": true, "attachments": true }
+  },
+  "storage": {
+    "backend": "supabase",
+    "env": { "urlVar": "VITE_SUPABASE_URL", "anonKeyVar": "VITE_SUPABASE_ANON_KEY" }
+  },
+  "ai": {
+    "provider": "openai",
+    "env": { "apiKeyVar": "VITE_OPENAI_API_KEY" },
+    "useCases": ["categorizeExpenses", "summarizeTrips", "prepareEvidenceReports"]
+  }
+}
