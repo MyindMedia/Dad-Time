@@ -9,6 +9,14 @@ interface ActiveVisit {
   notes: string | null
 }
 
+interface VisitRow {
+  id: string
+  start_time: string
+  end_time: string | null
+  notes: string | null
+  child_id: string | null
+}
+
 export default function Timer() {
   const [isActive, setIsActive] = useState(false)
   const [currentSession, setCurrentSession] = useState<ActiveVisit | null>(null)
@@ -23,9 +31,13 @@ export default function Timer() {
   const [loading, setLoading] = useState(false)
   const wakeLockRef = useRef<any>(null)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const [monthlyVisits, setMonthlyVisits] = useState<VisitRow[]>([])
+  const [monthlyTotalMs, setMonthlyTotalMs] = useState(0)
+  const [visitsLoading, setVisitsLoading] = useState(false)
 
   useEffect(() => {
     checkActiveSession()
+    loadMonthlyVisits()
   }, [])
 
   useEffect(() => {
@@ -74,6 +86,38 @@ export default function Timer() {
       }
     } catch (error) {
       console.error('Error checking active session:', error)
+    }
+  }
+
+  const loadMonthlyVisits = async () => {
+    try {
+      setVisitsLoading(true)
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const now = new Date()
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+      const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+      const { data, error } = await supabase
+        .from('visits')
+        .select('id,start_time,end_time,notes,child_id')
+        .eq('user_id', user.id)
+        .gte('start_time', monthStart.toISOString())
+        .lte('start_time', new Date(monthEnd.getTime() + 24*60*60*1000).toISOString())
+        .order('start_time', { ascending: false })
+      if (error) throw error
+      const rows = data || []
+      setMonthlyVisits(rows)
+      let total = 0
+      rows.forEach(r => {
+        const s = new Date(r.start_time).getTime()
+        const e = r.end_time ? new Date(r.end_time).getTime() : Date.now()
+        if (e > s) total += (e - s)
+      })
+      setMonthlyTotalMs(total)
+    } catch (e) {
+      console.error('Error loading monthly visits:', e)
+    } finally {
+      setVisitsLoading(false)
     }
   }
 
@@ -132,6 +176,7 @@ export default function Timer() {
       setIsActive(true)
       setElapsedTime(0)
       await requestWakeLock()
+      await loadMonthlyVisits()
     } catch (error) {
       console.error('Error starting timer:', error)
       alert('Failed to start timer')
@@ -158,6 +203,7 @@ export default function Timer() {
       setChildName('')
       setNotes('')
       await releaseWakeLock()
+      await loadMonthlyVisits()
     } catch (error) {
       console.error('Error stopping timer:', error)
       alert('Failed to stop timer')
@@ -210,6 +256,7 @@ export default function Timer() {
       setManualStart('')
       setManualEnd('')
       alert('Manual custody session added')
+      await loadMonthlyVisits()
     } catch (error) {
       console.error('Error adding manual entry:', error)
       alert('Failed to add manual entry')
@@ -373,6 +420,45 @@ export default function Timer() {
           This app uses wake lock to keep your screen awake during custody sessions. 
           This prevents accidental timer closure and ensures accurate time tracking.
         </p>
+      </div>
+
+      <div className="mt-6 bg-white rounded-lg shadow-md p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">Time Log (This Month)</h2>
+          <div className="text-sm">
+            <span className="font-medium text-blue-600">Total:</span>{' '}
+            <span className="font-mono text-gray-900">
+              {formatTime(monthlyTotalMs)}
+            </span>
+          </div>
+        </div>
+
+        {visitsLoading ? (
+          <div className="flex items-center justify-center h-24">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
+        ) : monthlyVisits.length === 0 ? (
+          <p className="text-sm text-gray-600">No visits recorded this month.</p>
+        ) : (
+          <ul className="divide-y divide-gray-200">
+            {monthlyVisits.map(v => {
+              const s = new Date(v.start_time)
+              const e = v.end_time ? new Date(v.end_time) : new Date()
+              const d = e.getTime() - s.getTime()
+              return (
+                <li key={v.id} className="py-3 flex items-center justify-between">
+                  <div>
+                    <div className="text-sm font-medium text-gray-900">
+                      {s.toLocaleDateString()} • {s.toLocaleTimeString()} – {v.end_time ? new Date(v.end_time).toLocaleTimeString() : 'running'}
+                    </div>
+                    {v.notes && <div className="text-xs text-gray-600">{v.notes}</div>}
+                  </div>
+                  <div className="text-sm font-mono text-blue-700">{formatTime(d)}</div>
+                </li>
+              )
+            })}
+          </ul>
+        )}
       </div>
     </div>
   )

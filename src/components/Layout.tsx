@@ -1,6 +1,7 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { useState } from 'react'
-import { supabase } from '../lib/supabase'
+import wordmark from '../../assets/dad_time_horizontal_logo.svg'
+import { supabase, SUPABASE_CONFIG_OK } from '../lib/supabase'
 import {
   HomeIcon,
   ClockIcon,
@@ -47,7 +48,9 @@ export default function Layout({ children }: LayoutProps) {
         <div className="fixed inset-0 bg-gray-900/80" onClick={() => setSidebarOpen(false)} />
         <div className="fixed inset-y-0 left-0 flex w-64 flex-col bg-white">
           <div className="flex h-16 items-center justify-between px-4">
-            <h1 className="text-xl font-bold text-blue-600">Dad Time</h1>
+            <div className="flex items-center gap-2">
+              <img src={wordmark} alt="Dad Time" className="h-20 object-contain" />
+            </div>
             <button
               type="button"
               className="-m-2.5 p-2.5"
@@ -96,7 +99,9 @@ export default function Layout({ children }: LayoutProps) {
       <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-64 lg:flex-col">
         <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4">
           <div className="flex h-16 shrink-0 items-center">
-            <h1 className="text-xl font-bold text-blue-600">Dad Time</h1>
+            <div className="flex items-center gap-2">
+              <img src={wordmark} alt="Dad Time" className="h-20 object-contain" />
+            </div>
           </div>
           <nav className="flex flex-1 flex-col">
             <ul role="list" className="flex flex-1 flex-col gap-y-7">
@@ -135,7 +140,7 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* Main content */}
       <div className="lg:pl-64 flex flex-col flex-1">
-        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 lg:px-6">
+        <div className="sticky top-0 z-40 flex h-24 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 lg:px-6">
           <button
             type="button"
             className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
@@ -143,6 +148,7 @@ export default function Layout({ children }: LayoutProps) {
           >
             <Bars3Icon className="h-6 w-6" />
           </button>
+          <img src={wordmark} alt="Dad Time" className="h-20 object-contain" />
           <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
             <div className="flex flex-1 items-center justify-end gap-x-4 lg:gap-x-6">
               <span className="text-sm text-gray-500">
@@ -158,6 +164,11 @@ export default function Layout({ children }: LayoutProps) {
         </div>
         <main className="flex-1">
           <div className="p-4 sm:p-6 lg:p-8">
+            {!SUPABASE_CONFIG_OK && (
+              <div className="mb-4 rounded-md bg-yellow-50 p-4 text-sm text-yellow-800">
+                Supabase is not configured. Set environment variables on your host: <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code>.
+              </div>
+            )}
             {children}
           </div>
         </main>

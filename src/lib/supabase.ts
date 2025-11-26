@@ -3,7 +3,38 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const SUPABASE_CONFIG_OK = Boolean(supabaseUrl && supabaseAnonKey)
+
+// Avoid crashing the app when env vars are missing in production
+let client: any = null
+try {
+  if (SUPABASE_CONFIG_OK) {
+    client = createClient(supabaseUrl, supabaseAnonKey)
+  } else {
+    client = {
+      auth: {
+        async getUser() { return { data: { user: null }, error: null } },
+        async signInWithPassword() { throw new Error('Supabase not configured') },
+        async signOut() { return { error: null } },
+        async signUp() { throw new Error('Supabase not configured') },
+      },
+      from() { throw new Error('Supabase not configured') },
+      storage: {
+        from() { throw new Error('Supabase not configured') }
+      }
+    }
+    console.warn('Supabase configuration missing: set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY')
+  }
+} catch (e) {
+  console.error('Failed to initialize Supabase client', e)
+  client = {
+    auth: { async getUser() { return { data: { user: null }, error: null } } },
+    from() { throw e },
+    storage: { from() { throw e } }
+  }
+}
+
+export const supabase = client
 
 export type Database = {
   public: {

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import wordmark from '../../assets/dad_time_horizontal_logo.svg'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
@@ -43,6 +44,7 @@ export default function Register() {
       <div className="max-w-md w-full">
         <div className="bg-white rounded-lg shadow-xl p-8">
           <div className="text-center mb-8">
+            <img src={wordmark} alt="Dad Time" className="h-32 mx-auto mb-8 object-contain" />
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Dad Time</h1>
             <p className="text-gray-600">Create Your Account</p>
           </div>
