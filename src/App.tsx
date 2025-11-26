@@ -6,7 +6,7 @@ import Home from './pages/Home'
 import Timer from './pages/Timer'
 import GPSTracking from './pages/GPSTracking'
 import Expenses from './pages/Expenses'
-import AIConversations from './pages/AIConversations'
+import Conversations from './pages/Conversations'
 import Evidence from './pages/Evidence'
 import Reports from './pages/Reports'
 import Calendar from './pages/Calendar'
@@ -59,7 +59,7 @@ function App() {
                   <Route path="/timer" element={<Timer />} />
                   <Route path="/gps-tracking" element={<GPSTracking />} />
                   <Route path="/expenses" element={<Expenses />} />
-                  <Route path="/ai-conversations" element={<AIConversations />} />
+                  <Route path="/ai-conversations" element={<Conversations />} />
                   <Route path="/evidence" element={<Evidence />} />
                   <Route path="/reports" element={<Reports />} />
                   <Route path="/calendar" element={<Calendar />} />

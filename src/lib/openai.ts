@@ -17,3 +17,13 @@ export async function analyzeConversationScreenshot(base64Image: string): Promis
   const parsed = await res.json()
   return parsed as AnalysisResult
 }
+
+export async function rewriteResponseVoss(draft: string, context: { summary?: string; tone?: string; key_points?: string[] }) {
+  const res = await fetch('/.netlify/functions/rewrite-response', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ draft, summary: context.summary, tone: context.tone, key_points: context.key_points })
+  })
+  if (!res.ok) throw new Error(await res.text())
+  return res.json()
+}

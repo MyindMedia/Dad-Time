@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getAccessToken, listPrimaryEvents, insertPrimaryEvent, isGoogleReady, revokeAccessToken, hasClientId, waitForGoogle } from '../lib/googleCalendar'
+import { supabase } from '../lib/supabase'
 
 interface GEvent {
   id: string
@@ -16,6 +17,11 @@ export default function Calendar() {
   const [start, setStart] = useState('')
   const [end, setEnd] = useState('')
   const [errMsg, setErrMsg] = useState('')
+  const [icsUrl, setIcsUrl] = useState('')
+  const [imported, setImported] = useState<any[]>([])
+  const [appleId, setAppleId] = useState('')
+  const [appPassword, setAppPassword] = useState('')
+  const [icloudImported, setIcloudImported] = useState<any[]>([])
 
   const connect = async () => {
     setLoading(true)
@@ -53,6 +59,81 @@ export default function Calendar() {
     } catch (e) {
       console.error(e)
       setErrMsg('Failed to load events. Check Google configuration.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const importIcs = async () => {
+    setLoading(true)
+    setErrMsg('')
+    try {
+      const resp = await fetch('/.netlify/functions/sync-ics', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: icsUrl })
+      })
+      if (!resp.ok) throw new Error(await resp.text())
+      const data = await resp.json()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not authenticated')
+      if (Array.isArray(data.events) && data.events.length) {
+        const rows = data.events.map((e: any) => ({
+          user_id: user.id,
+          provider: 'ics',
+          calendar_name: null,
+          external_id: e.external_id || null,
+          title: e.title,
+          description: null,
+          location: e.location || null,
+          start_time: e.start_time,
+          end_time: e.end_time || null,
+        }))
+        const ins = await supabase.from('calendar_events').insert(rows)
+        if (ins.error) throw ins.error
+        setImported(rows)
+      }
+    } catch (e: any) {
+      setErrMsg(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const syncIcloud = async () => {
+    setLoading(true)
+    setErrMsg('')
+    try {
+      const now = new Date()
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+      const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+      const resp = await fetch('/.netlify/functions/icloud-caldav', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appleId, appPassword, start: monthStart.toISOString(), end: new Date(monthEnd.getTime() + 24*60*60*1000).toISOString() })
+      })
+      if (!resp.ok) throw new Error(await resp.text())
+      const data = await resp.json()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not authenticated')
+      if (Array.isArray(data.events) && data.events.length) {
+        const rows = data.events.map((e: any) => ({
+          user_id: user.id,
+          provider: 'icloud-caldav',
+          calendar_name: data.calendar || null,
+          external_id: e.external_id || null,
+          title: e.title,
+          description: null,
+          location: e.location || null,
+          start_time: e.start_time,
+          end_time: e.end_time || null,
+        }))
+        const ins = await supabase.from('calendar_events').insert(rows)
+        if (ins.error) throw ins.error
+        setIcloudImported(rows)
+      }
+    } catch (e: any) {
+      setErrMsg(e.message)
     } finally {
       setLoading(false)
     }
@@ -116,6 +197,30 @@ export default function Calendar() {
           </form>
         )}
 
+        <div className="bg-gray-50 rounded-lg p-4 mb-6">
+          <h3 className="text-sm font-semibold text-gray-900 mb-2">Import iCloud/Outlook/Gmail via ICS</h3>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <input value={icsUrl} onChange={(e) => setIcsUrl(e.target.value)} placeholder="Paste ICS URL" className="md:col-span-3 px-3 py-2 border rounded-md" />
+            <button onClick={importIcs} disabled={loading || !icsUrl} className="px-4 py-2 rounded-md bg-green-600 text-white disabled:opacity-50">Import</button>
+          </div>
+          {imported.length > 0 && (
+            <p className="text-xs text-gray-600 mt-2">Imported {imported.length} events this session.</p>
+          )}
+        </div>
+
+        <div className="bg-gray-50 rounded-lg p-4 mb-6">
+          <h3 className="text-sm font-semibold text-gray-900 mb-2">Sync iCloud via CalDAV (read-only)</h3>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <input value={appleId} onChange={(e) => setAppleId(e.target.value)} placeholder="Apple ID (email)" className="px-3 py-2 border rounded-md" />
+            <input type="password" value={appPassword} onChange={(e) => setAppPassword(e.target.value)} placeholder="App-specific password" className="px-3 py-2 border rounded-md" />
+            <button onClick={syncIcloud} disabled={loading || !appleId || !appPassword} className="px-4 py-2 rounded-md bg-indigo-600 text-white disabled:opacity-50">Sync iCloud</button>
+          </div>
+          {icloudImported.length > 0 && (
+            <p className="text-xs text-gray-600 mt-2">Imported {icloudImported.length} iCloud events this session.</p>
+          )}
+          <p className="text-xs text-gray-500 mt-2">Credentials are used only for this sync call and are not stored.</p>
+        </div>
+
         <div className="bg-blue-50 rounded-lg p-6">
           {loading && <p className="text-blue-600 font-medium">Loading…</p>}
           {!connected && (
@@ -137,8 +242,48 @@ export default function Calendar() {
               )}
             </div>
           )}
+          <div className="mt-6">
+            <h3 className="text-sm font-semibold text-gray-900 mb-2">Imported Events (This Month)</h3>
+            <ImportedEventsList />
+          </div>
         </div>
       </div>
     </div>
+  )
+}
+
+function ImportedEventsList() {
+  const [rows, setRows] = useState<any[]>([])
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const now = new Date()
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+      const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+      const res = await supabase
+        .from('calendar_events')
+        .select('*')
+        .eq('user_id', user.id)
+        .gte('start_time', monthStart.toISOString())
+        .lte('start_time', new Date(monthEnd.getTime() + 24*60*60*1000).toISOString())
+        .order('start_time', { ascending: true })
+      setRows(res.data || [])
+    })()
+  }, [])
+  if (rows.length === 0) return <p className="text-xs text-gray-600">No imported events for this month.</p>
+  return (
+    <ul className="divide-y divide-gray-200">
+      {rows.map((r) => (
+        <li key={`${r.provider}-${r.external_id}-${r.start_time}`} className="py-2 flex items-center justify-between">
+          <div>
+            <div className="text-sm font-medium text-gray-900">{r.title}</div>
+            <div className="text-xs text-gray-600">{new Date(r.start_time).toLocaleString()} {r.end_time ? `→ ${new Date(r.end_time).toLocaleTimeString()}` : ''}</div>
+            {r.location && <div className="text-xs text-gray-500">{r.location}</div>}
+          </div>
+          <span className="text-xs text-gray-500">{r.provider.toUpperCase()}</span>
+        </li>
+      ))}
+    </ul>
   )
 }

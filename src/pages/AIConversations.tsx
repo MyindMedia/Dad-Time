@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
-import { analyzeConversationScreenshot } from '../lib/openai'
+import { analyzeConversationScreenshot, rewriteResponseVoss } from '../lib/openai'
 
 export default function AIConversations() {
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [result, setResult] = useState<any>(null)
   const [loading, setLoading] = useState(false)
+  const [draft, setDraft] = useState('')
+  const [rewrite, setRewrite] = useState<any>(null)
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -79,6 +81,75 @@ export default function AIConversations() {
                         <li key={i}>{kp}</li>
                       ))}
                     </ul>
+                  </div>
+                  <div className="pt-4 border-t">
+                    <div className="text-sm font-semibold text-gray-900 mb-2">Rewrite Your Reply (Voss Method)</div>
+                    <textarea value={draft} onChange={(e) => setDraft(e.target.value)} rows={4} className="w-full px-3 py-2 border rounded-md" placeholder="Type your draft reply here" />
+                    <div className="mt-2">
+                      <button
+                        disabled={loading || !draft}
+                        onClick={async () => {
+                          setLoading(true)
+                          try {
+                            const suggestions = await rewriteResponseVoss(draft, { summary: result.summary, tone: result.tone, key_points: result.key_points })
+                            setRewrite(suggestions)
+                          } catch (e) {
+                            alert('Failed to generate rewrite')
+                          } finally {
+                            setLoading(false)
+                          }
+                        }}
+                        className="px-4 py-2 rounded-md bg-indigo-600 text-white disabled:opacity-50"
+                      >
+                        Rewrite with Voss Method
+                      </button>
+                    </div>
+                    {rewrite && (
+                      <div className="mt-3 space-y-3">
+                        <div>
+                          <div className="text-sm font-semibold text-gray-900">Primary</div>
+                          <div className="text-sm text-gray-700">{rewrite.primary}</div>
+                        </div>
+                        {rewrite.calibrated_questions?.length > 0 && (
+                          <div>
+                            <div className="text-sm font-semibold text-gray-900">Calibrated Questions</div>
+                            <ul className="text-sm text-gray-700 list-disc pl-5">
+                              {rewrite.calibrated_questions.map((q: string, i: number) => (<li key={i}>{q}</li>))}
+                            </ul>
+                          </div>
+                        )}
+                        {rewrite.labels?.length > 0 && (
+                          <div>
+                            <div className="text-sm font-semibold text-gray-900">Labels</div>
+                            <ul className="text-sm text-gray-700 list-disc pl-5">
+                              {rewrite.labels.map((q: string, i: number) => (<li key={i}>{q}</li>))}
+                            </ul>
+                          </div>
+                        )}
+                        {rewrite.mirrors?.length > 0 && (
+                          <div>
+                            <div className="text-sm font-semibold text-gray-900">Mirrors</div>
+                            <ul className="text-sm text-gray-700 list-disc pl-5">
+                              {rewrite.mirrors.map((q: string, i: number) => (<li key={i}>{q}</li>))}
+                            </ul>
+                          </div>
+                        )}
+                        {rewrite.alternatives?.length > 0 && (
+                          <div>
+                            <div className="text-sm font-semibold text-gray-900">Alternatives</div>
+                            <ul className="text-sm text-gray-700 list-disc pl-5">
+                              {rewrite.alternatives.map((q: string, i: number) => (<li key={i}>{q}</li>))}
+                            </ul>
+                          </div>
+                        )}
+                        {rewrite.summary_statement && (
+                          <div>
+                            <div className="text-sm font-semibold text-gray-900">Summary Statement</div>
+                            <div className="text-sm text-gray-700">{rewrite.summary_statement}</div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
