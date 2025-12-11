@@ -11,6 +11,7 @@ import { Conversations } from './pages/Conversations';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect } from 'react';
 import { ensureBuckets } from './services/buckets';
+import { initBackgroundTracking } from './services/backgroundTracking';
 import { pageTransitionSlide } from './lib/animations';
 import { ToastContainer } from './components/Toast';
 import { useToast } from './hooks/useToast';
@@ -56,6 +57,7 @@ function App() {
   const { toasts, dismissToast } = useToast();
   useEffect(() => {
     ensureBuckets();
+    initBackgroundTracking();
   }, []);
 
   return (

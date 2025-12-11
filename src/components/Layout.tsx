@@ -1,11 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, Clock, BarChart3, Settings, MessageSquare } from 'lucide-react';
 import { HapticFeedback } from '../utils/ios';
 import { motion } from 'framer-motion';
 import { pulse, springConfig } from '../lib/animations';
-import { useEntity } from '../hooks/useEntity';
-import type { VisitSession, Trip } from '../types';
+import { getBackgroundState } from '../services/backgroundTracking';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -13,8 +12,10 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
     const location = useLocation();
-    const { items: visits } = useEntity<VisitSession>('visits');
-    const { items: trips } = useEntity<Trip>('trips');
+    const [timerActive, setTimerActive] = useState(false);
+    const [gpsActive, setGpsActive] = useState(false);
+    const [elapsed, setElapsed] = useState<number>(0);
+    const [lastGpsAt, setLastGpsAt] = useState<string | undefined>(undefined);
 
     useEffect(() => {
         if ('serviceWorker' in navigator) {
@@ -29,12 +30,48 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         }
     }, []);
 
+    useEffect(() => {
+        const s = getBackgroundState();
+        setTimerActive(!!s.timerActive);
+        setGpsActive(!!s.gpsActive);
+        setLastGpsAt(s.lastGPSUpdate);
+        const onTimer = (e: any) => setElapsed(e.detail?.elapsed ?? 0);
+        const onState = (e: any) => {
+            setTimerActive(!!e.detail?.timerActive);
+            setGpsActive(!!e.detail?.gpsActive);
+            setLastGpsAt(e.detail?.lastGPSUpdate);
+        };
+        window.addEventListener('timer-tick', onTimer as any);
+        window.addEventListener('background-state-changed', onState as any);
+        return () => {
+            window.removeEventListener('timer-tick', onTimer as any);
+            window.removeEventListener('background-state-changed', onState as any);
+        };
+    }, []);
+
     const isActive = (path: string) => location.pathname === path;
 
     const handleNavClick = () => {
         HapticFeedback.light();
-    };
+};
 
+function formatElapsed(totalSeconds: number): string {
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+function formatAgo(ts?: string): string {
+    if (!ts) return '';
+    const diffMs = Date.now() - new Date(ts).getTime();
+    const diffSec = Math.max(0, Math.floor(diffMs / 1000));
+    if (diffSec < 60) return `${diffSec}s ago`;
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `${diffMin}m ago`;
+    const diffHr = Math.floor(diffMin / 60);
+    return `${diffHr}h ago`;
+}
     const navItems = [
         { path: '/', icon: Home, label: 'Home' },
         { path: '/conversations', icon: MessageSquare, label: 'Timesheet' },
@@ -43,8 +80,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         { path: '/settings', icon: Settings, label: 'Setting' },
     ];
 
-    const hasActiveVisit = visits.some(v => !v.endTime);
-    const hasActiveTrip = trips.some(t => !t.endTime);
+    const hasActiveVisit = timerActive;
+    const hasActiveTrip = gpsActive;
 
     return (
         <div className="min-h-screen bg-[#FAFAFA]" style={{ paddingBottom: 'calc(96px + var(--safe-area-bottom))' }}>
@@ -55,7 +92,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             {(hasActiveVisit || hasActiveTrip) && (
                 <div className="fixed top-2 left-1/2 -translate-x-1/2 z-50">
                     <span className="px-3 py-1 bg-[#10B981]/10 text-[#10B981] text-xs rounded-full font-semibold shadow-sm">
-                        {hasActiveVisit && hasActiveTrip ? 'Timing • Tracking' : hasActiveVisit ? 'Timing' : 'Tracking'}
+                        {hasActiveVisit ? `Timing ${formatElapsed(elapsed)}` : ''}
+                        {hasActiveVisit && hasActiveTrip ? ' • ' : ''}
+                        {hasActiveTrip ? `GPS ${formatAgo(lastGpsAt)}` : ''}
                     </span>
                 </div>
             )}
