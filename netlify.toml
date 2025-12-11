@@ -5,6 +5,7 @@
 [build.environment]
   NODE_VERSION = "20"
   NPM_VERSION = "10"
+  VITE_FORCE_HTTPS = "true"
 
 [[redirects]]
   from = "/*"
@@ -29,3 +30,21 @@
     X-Frame-Options = "DENY"
     X-XSS-Protection = "1; mode=block"
     Referrer-Policy = "strict-origin-when-cross-origin"
+
+[context.production]
+  command = "npm run build"
+  publish = "dist"
+  [context.production.environment]
+    VITE_BUILD_CONTEXT = "production"
+
+[context.deploy-preview]
+  command = "npm run build"
+  publish = "dist"
+  [context.deploy-preview.environment]
+    VITE_BUILD_CONTEXT = "preview"
+
+[context.branch-deploy]
+  command = "npm run build"
+  publish = "dist"
+  [context.branch-deploy.environment]
+    VITE_BUILD_CONTEXT = "branch"
