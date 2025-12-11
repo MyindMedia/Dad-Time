@@ -1,0 +1,11 @@
+<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="192" height="192" rx="42" fill="#F79C21"/>
+
+  <!-- Map Pin Icon -->
+  <path d="M96 40 C77 40 62 55 62 74 C62 98 96 130 96 130 C96 130 130 98 130 74 C130 55 115 40 96 40 Z" fill="#FFFFFF"/>
+  <circle cx="96" cy="74" r="15" fill="#F79C21"/>
+
+  <!-- Route Line -->
+  <path d="M50 150 Q70 120 96 130 T142 150" stroke="#FFFFFF" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.6"/>
+</svg>

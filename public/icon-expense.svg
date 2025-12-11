@@ -1,0 +1,11 @@
+<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="192" height="192" rx="42" fill="#10B981"/>
+
+  <!-- Dollar Sign -->
+  <path d="M96 40 L96 152" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round"/>
+  <path d="M70 65 C70 65 70 50 96 50 C122 50 122 65 122 65 C122 75 110 80 96 85 C82 90 70 95 70 105 C70 115 70 142 96 142 C122 142 122 127 122 127" stroke="#FFFFFF" stroke-width="12" fill="none" stroke-linecap="round"/>
+
+  <!-- Coin Circle -->
+  <circle cx="96" cy="96" r="60" fill="none" stroke="#FFFFFF" stroke-width="6" opacity="0.3"/>
+</svg>

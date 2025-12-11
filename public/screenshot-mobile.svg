@@ -1,0 +1,56 @@
+<svg width="390" height="844" viewBox="0 0 390 844" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- iPhone Frame Background -->
+  <rect width="390" height="844" fill="#FAFAFA"/>
+
+  <!-- Status Bar -->
+  <rect width="390" height="44" fill="#00082D"/>
+  <text x="20" y="30" fill="#FFFFFF" font-family="Inter" font-size="14" font-weight="600">9:41</text>
+
+  <!-- Header -->
+  <rect y="44" width="390" height="300" fill="#00082D" rx="0 0 32 32"/>
+  <circle cx="60" cy="90" r="16" fill="#1A66FF"/>
+  <text x="85" y="98" fill="#FFFFFF" font-family="Inter" font-size="20" font-weight="700">DadTime</text>
+
+  <text x="30" y="160" fill="#FFFFFF" font-family="Inter" font-size="12" opacity="0.7">March 12, 2025, Tuesday</text>
+  <text x="30" y="200" fill="#FFFFFF" font-family="Inter" font-size="28" font-weight="700">Today Working Hours</text>
+
+  <!-- Progress Card -->
+  <rect x="30" y="220" width="330" height="100" rx="16" fill="#1A66FF" opacity="0.1"/>
+  <text x="50" y="250" fill="#FFFFFF" font-family="Inter" font-size="14" font-weight="600">Working hours</text>
+  <text x="310" y="250" fill="#FFFFFF" font-family="Inter" font-size="14" font-weight="600">2.5hr</text>
+  <rect x="50" y="260" width="290" height="6" rx="3" fill="#FFFFFF" opacity="0.2"/>
+  <rect x="50" y="260" width="180" height="6" rx="3" fill="#1A66FF"/>
+
+  <!-- Calendar Strip -->
+  <rect x="30" y="360" width="330" height="70" rx="16" fill="#FFFFFF"/>
+  <g transform="translate(50, 380)">
+    <text x="20" y="12" fill="#00082D" font-size="10" opacity="0.6">Mon</text>
+    <text x="20" y="28" fill="#00082D" font-size="12" font-weight="700">11</text>
+  </g>
+  <g transform="translate(110, 380)">
+    <text x="20" y="12" fill="#FFFFFF" font-size="10">Tue</text>
+    <text x="20" y="28" fill="#FFFFFF" font-size="12" font-weight="700">12</text>
+    <rect x="10" y="0" width="40" height="40" rx="10" fill="#00082D"/>
+  </g>
+  <g transform="translate(170, 380)">
+    <text x="20" y="12" fill="#00082D" font-size="10" opacity="0.6">Wed</text>
+    <text x="20" y="28" fill="#00082D" font-size="12" font-weight="700">13</text>
+  </g>
+
+  <!-- Task Cards -->
+  <text x="30" y="470" fill="#00082D" font-family="Inter" font-size="16" font-weight="700">Task Today</text>
+
+  <!-- Start Visit Card -->
+  <rect x="30" y="490" width="330" height="70" rx="16" fill="#FFFFFF"/>
+  <circle cx="60" cy="525" r="20" fill="#1A66FF" opacity="0.1"/>
+  <path d="M55 515 L55 535 L68 525 Z" fill="#1A66FF"/>
+  <text x="90" y="522" fill="#00082D" font-family="Inter" font-size="14" font-weight="600">Start Visit</text>
+  <text x="90" y="538" fill="#1A66FF" font-family="Inter" font-size="12">Track time with child</text>
+
+  <!-- Bottom Navigation -->
+  <rect y="764" width="390" height="80" rx="32 32 0 0" fill="#FFFFFF" fill-opacity="0.9"/>
+  <circle cx="78" cy="794" r="12" fill="#1A66FF" opacity="0.3"/>
+  <circle cx="195" cy="774" r="28" fill="#1A66FF"/>
+  <path d="M188 767 L188 781 L202 774 Z" fill="#FFFFFF"/>
+  <circle cx="312" cy="794" r="12" fill="#00082D" opacity="0.3"/>
+</svg>

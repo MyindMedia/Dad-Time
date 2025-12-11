@@ -1,0 +1,32 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="256" cy="256" r="256" fill="#1A66FF"/>
+
+  <!-- Outer Ring -->
+  <circle cx="256" cy="256" r="200" fill="none" stroke="#FFFFFF" stroke-width="16" opacity="0.3"/>
+
+  <!-- Clock Face -->
+  <circle cx="256" cy="256" r="160" fill="#00082D"/>
+
+  <!-- Hour Markers -->
+  <circle cx="256" cy="136" r="8" fill="#F79C21"/>
+  <circle cx="376" cy="256" r="8" fill="#F79C21"/>
+  <circle cx="256" cy="376" r="8" fill="#F79C21"/>
+  <circle cx="136" cy="256" r="8" fill="#F79C21"/>
+
+  <!-- Clock Hands -->
+  <!-- Hour Hand -->
+  <rect x="248" y="180" width="16" height="76" rx="8" fill="#FFFFFF"/>
+
+  <!-- Minute Hand -->
+  <rect x="250" y="140" width="12" height="116" rx="6" fill="#F79C21"/>
+
+  <!-- Center Dot -->
+  <circle cx="256" cy="256" r="20" fill="#FFFFFF"/>
+  <circle cx="256" cy="256" r="12" fill="#1A66FF"/>
+
+  <!-- Small "Dad" Text Arc -->
+  <text x="256" y="330" font-family="Inter, sans-serif" font-size="48" font-weight="800" fill="#FFFFFF" text-anchor="middle">
+    DT
+  </text>
+</svg>
