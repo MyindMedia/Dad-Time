@@ -9,6 +9,8 @@ import { Settings } from './pages/Settings';
 import { Reports } from './pages/Reports';
 import { Conversations } from './pages/Conversations';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useEffect } from 'react';
+import { ensureBuckets } from './services/buckets';
 import { pageTransitionSlide } from './lib/animations';
 import { ToastContainer } from './components/Toast';
 import { useToast } from './hooks/useToast';
@@ -52,6 +54,9 @@ function PageWrapper({ children }: { children: React.ReactNode }) {
 
 function App() {
   const { toasts, dismissToast } = useToast();
+  useEffect(() => {
+    ensureBuckets();
+  }, []);
 
   return (
     <Router>
