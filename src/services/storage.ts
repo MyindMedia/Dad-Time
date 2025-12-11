@@ -32,6 +32,10 @@ export const storage = {
             void (async () => {
                 try {
                     const payload = mapCamelToSnake(key, newItem);
+                    const { data: userRes } = await supabase.auth.getUser();
+                    if (userRes.user) {
+                        payload.user_id = userRes.user.id;
+                    }
                     const { error } = await supabase.from(key).upsert(payload);
                     if (error) console.error(`Supabase sync error for ${key}:`, error);
                 } catch (err: any) {
@@ -56,6 +60,10 @@ export const storage = {
             void (async () => {
                 try {
                     const payload = mapCamelToSnake(key, updatedItem);
+                    const { data: userRes } = await supabase.auth.getUser();
+                    if (userRes.user) {
+                        payload.user_id = userRes.user.id;
+                    }
                     const { error } = await supabase.from(key).upsert(payload);
                     if (error) console.error(`Supabase sync error for ${key}:`, error);
                 } catch (err: any) {
@@ -95,6 +103,11 @@ export const storage = {
         }
 
         try {
+            const buckets = await supabase.storage.listBuckets();
+            const exists = buckets.data?.some((b: any) => b.name === bucket);
+            if (!exists) {
+                await supabase.storage.createBucket(bucket, { public: true });
+            }
             const fileExt = file.name.split('.').pop();
             const fileName = `${uuidv4()}.${fileExt}`;
             const filePath = `${path}/${fileName}`;

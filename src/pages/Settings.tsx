@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Plus, Trash2, Save, Zap } from 'lucide-react';
+import { User, Plus, Trash2, Save, Zap, LogIn, LogOut } from 'lucide-react';
 import { useEntity } from '../hooks/useEntity';
 import type { ParentProfile, Child } from '../types';
 import { motion } from 'framer-motion';
@@ -31,6 +31,14 @@ export const Settings: React.FC = () => {
     useEffect(() => {
         const settings = getAutomationSettings();
         setAutomationSettings(settings);
+    }, []);
+
+    useEffect(() => {
+        AuthService.getUser().then((u) => setAuthUserEmail(u?.email || ''));
+        const unsub = AuthService.onAuthStateChange(() => {
+            AuthService.getUser().then((u) => setAuthUserEmail(u?.email || ''));
+        });
+        return unsub;
     }, []);
 
     const handleSaveProfile = () => {
@@ -73,9 +81,44 @@ export const Settings: React.FC = () => {
 
             <motion.div layout className="border border-[#EFEFEF] rounded-2xl p-4 bg-white">
                 <h3 className="font-semibold mb-4 flex items-center gap-2 text-[#00082D]">
-                    <User size={20} className="text-[#1A66FF]" /> Parent Profile
+                    <User size={20} className="text-[#1A66FF]" /> Account
                 </h3>
                 <div className="space-y-4">
+                    <div className="p-3 rounded-xl border border-[#EFEFEF] bg-[#FAFAFA]">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm font-semibold text-[#00082D]">Signed in</p>
+                                <p className="text-xs text-[#202020] opacity-70">{authUserEmail || 'Not signed in'}</p>
+                            </div>
+                            <div className="flex gap-2">
+                                <button onClick={handleSignOut} className="px-3 py-2 rounded-full bg-[#EFEFEF] text-[#202020] text-xs font-semibold flex items-center gap-1">
+                                    <LogOut size={14} /> Sign Out
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 gap-2">
+                        <input
+                            type="email"
+                            className="input-field"
+                            placeholder="Email"
+                            value={authEmail}
+                            onChange={(e) => setAuthEmail(e.target.value)}
+                        />
+                        <input
+                            type="password"
+                            className="input-field"
+                            placeholder="Password"
+                            value={authPassword}
+                            onChange={(e) => setAuthPassword(e.target.value)}
+                        />
+                        <div className="flex gap-2">
+                            <button onClick={handleSignIn} className="flex-1 px-4 py-3 bg-[#1A66FF] text-white rounded-full font-semibold text-sm flex items-center justify-center gap-2">
+                                <LogIn size={16} /> Sign In
+                            </button>
+                            <button onClick={handleSignUp} className="flex-1 px-4 py-3 bg-[#00082D] text-white rounded-full font-semibold text-sm">Create Account</button>
+                        </div>
+                    </div>
                     <div className="input-group">
                         <label className="input-label text-sm font-semibold text-[#00082D]">Full Name</label>
                         <input
@@ -352,3 +395,35 @@ export const Settings: React.FC = () => {
         </motion.div>
     );
 };
+import { AuthService } from '../services/auth';
+    const [authEmail, setAuthEmail] = useState('');
+    const [authPassword, setAuthPassword] = useState('');
+    const [authUserEmail, setAuthUserEmail] = useState<string>('');
+    const handleSignIn = async () => {
+        const res = await AuthService.signIn(authEmail, authPassword);
+        if (res.error) {
+            alert('Sign in failed');
+            return;
+        }
+        setAuthEmail('');
+        setAuthPassword('');
+        alert('Signed in');
+    };
+
+    const handleSignUp = async () => {
+        const res = await AuthService.signUp(authEmail, authPassword);
+        if (res.error) {
+            alert('Sign up failed');
+            return;
+        }
+        alert('Account created. Please verify email and sign in.');
+    };
+
+    const handleSignOut = async () => {
+        const res = await AuthService.signOut();
+        if (res.error) {
+            alert('Sign out failed');
+            return;
+        }
+        alert('Signed out');
+    };
