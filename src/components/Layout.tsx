@@ -74,7 +74,7 @@ function formatAgo(ts?: string): string {
 }
     const navItems = [
         { path: '/', icon: Home, label: 'Home' },
-        { path: '/conversations', icon: MessageSquare, label: 'Timesheet' },
+        { path: '/timesheet', icon: MessageSquare, label: 'Timesheet' },
         { path: '/visit', icon: Clock, label: 'Timer' },
         { path: '/reports', icon: BarChart3, label: 'Reports' },
         { path: '/settings', icon: Settings, label: 'Setting' },

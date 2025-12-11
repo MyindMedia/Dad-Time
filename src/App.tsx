@@ -9,6 +9,7 @@ import React, { useEffect } from 'react';
 const SettingsLazy = React.lazy(async () => ({ default: (await import('./pages/Settings')).Settings }));
 import { Reports } from './pages/Reports';
 import { Conversations } from './pages/Conversations';
+import { Timesheet } from './pages/Timesheet';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ensureBuckets } from './services/buckets';
 import { initBackgroundTracking } from './services/backgroundTracking';
@@ -27,8 +28,9 @@ function AnimatedRoutes() {
         <Route path="/expenses" element={<PageWrapper><Expenses /></PageWrapper>} />
         <Route path="/evidence" element={<PageWrapper><Evidence /></PageWrapper>} />
         <Route path="/conversations" element={<PageWrapper><Conversations /></PageWrapper>} />
+        <Route path="/timesheet" element={<PageWrapper><Timesheet /></PageWrapper>} />
         <Route path="/reports" element={<PageWrapper><Reports /></PageWrapper>} />
-        <Route path="/settings" element={<React.Suspense fallback={<div />}> <PageWrapper><SettingsLazy /></PageWrapper> </React.Suspense>} />
+        <Route path="/settings" element={<PageWrapper><SettingsLazy /></PageWrapper>} />
       </Routes>
     </AnimatePresence>
   );
