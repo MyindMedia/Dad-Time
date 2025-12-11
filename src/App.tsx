@@ -5,11 +5,11 @@ import { Visit } from './pages/Visit';
 import { Trips } from './pages/Trips';
 import { Expenses } from './pages/Expenses';
 import { Evidence } from './pages/Evidence';
-import { Settings } from './pages/Settings';
+import React, { useEffect } from 'react';
+const SettingsLazy = React.lazy(async () => ({ default: (await import('./pages/Settings')).Settings }));
 import { Reports } from './pages/Reports';
 import { Conversations } from './pages/Conversations';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect } from 'react';
 import { ensureBuckets } from './services/buckets';
 import { initBackgroundTracking } from './services/backgroundTracking';
 import { pageTransitionSlide } from './lib/animations';
@@ -28,7 +28,7 @@ function AnimatedRoutes() {
         <Route path="/evidence" element={<PageWrapper><Evidence /></PageWrapper>} />
         <Route path="/conversations" element={<PageWrapper><Conversations /></PageWrapper>} />
         <Route path="/reports" element={<PageWrapper><Reports /></PageWrapper>} />
-        <Route path="/settings" element={<PageWrapper><Settings /></PageWrapper>} />
+        <Route path="/settings" element={<React.Suspense fallback={<div />}> <PageWrapper><SettingsLazy /></PageWrapper> </React.Suspense>} />
       </Routes>
     </AnimatePresence>
   );

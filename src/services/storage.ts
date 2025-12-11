@@ -36,6 +36,11 @@ export const storage = {
                     if (userRes.user) {
                         payload.user_id = userRes.user.id;
                     }
+                    if (key === storage.KEYS.CONVERSATIONS) {
+                        if (await hasColumn('conversations', 'content')) {
+                            payload.content = payload.summary_text;
+                        }
+                    }
                     const { error } = await supabase.from(key).upsert(payload);
                     if (error) console.error(`Supabase sync error for ${key}:`, error);
                 } catch (err: any) {
@@ -63,6 +68,11 @@ export const storage = {
                     const { data: userRes } = await supabase.auth.getUser();
                     if (userRes.user) {
                         payload.user_id = userRes.user.id;
+                    }
+                    if (key === storage.KEYS.CONVERSATIONS) {
+                        if (await hasColumn('conversations', 'content')) {
+                            payload.content = payload.summary_text;
+                        }
                     }
                     const { error } = await supabase.from(key).upsert(payload);
                     if (error) console.error(`Supabase sync error for ${key}:`, error);
@@ -204,4 +214,24 @@ function mapCamelToSnake(key: string, obj: any) {
     }
 
     return mapped;
+}
+
+const columnExistsCache: Record<string, boolean> = {};
+
+async function hasColumn(table: string, column: string): Promise<boolean> {
+    if (!supabase) return false;
+    const key = `${table}:${column}`;
+    if (key in columnExistsCache) return columnExistsCache[key];
+    try {
+        const { error } = await supabase.from(table).select(column).limit(1);
+        if (error) {
+            columnExistsCache[key] = false;
+            return false;
+        }
+        columnExistsCache[key] = true;
+        return true;
+    } catch {
+        columnExistsCache[key] = false;
+        return false;
+    }
 }
