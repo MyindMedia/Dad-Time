@@ -151,6 +151,7 @@ export const storage = {
         EVIDENCE: 'evidence',
         CONVERSATIONS: 'conversations',
         REPORT_CONFIG: 'report_config',
+        CUSTODY_SCHEDULES: 'custody_schedules',
     }
 };
 
@@ -207,6 +208,16 @@ function mapCamelToSnake(key: string, obj: any) {
     if (key === storage.KEYS.EXPENSES) {
         const allow = new Set([
             'id', 'user_id', 'child_id', 'date', 'amount', 'category', 'merchant_name', 'payment_method', 'receipt_image_id', 'reimbursement_status', 'notes', 'created_at'
+        ]);
+        for (const mk of Object.keys(mapped)) {
+            if (!allow.has(mk)) delete mapped[mk];
+        }
+    }
+
+    if (key === storage.KEYS.CUSTODY_SCHEDULES) {
+        const allow = new Set([
+            'id', 'user_id', 'name', 'child_ids', 'pattern', 'start_date', 'end_date', 'visit_type',
+            'days_of_week', 'start_time', 'end_time', 'rrule', 'notes', 'active', 'created_at', 'updated_at'
         ]);
         for (const mk of Object.keys(mapped)) {
             if (!allow.has(mk)) delete mapped[mk];

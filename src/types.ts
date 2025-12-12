@@ -117,3 +117,31 @@ export type ReportConfig = {
   deliveryMethod: DeliveryMethod;
   includeRawExports: boolean;
 };
+
+// Custody Schedule Types
+export type RecurrencePattern = 'weekly' | 'biweekly' | 'custom' | 'once';
+export type DayOfWeek = 'sunday' | 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday';
+
+export type CustodySchedule = {
+  id: string;
+  name: string; // e.g., "Standard Custody Schedule", "Summer Schedule"
+  childIds: string[]; // Can apply to multiple children
+  pattern: RecurrencePattern;
+  startDate: string; // ISO date - when schedule starts
+  endDate?: string; // ISO date - optional end date for temporary schedules
+  visitType: VisitType; // Default visit type for generated visits
+
+  // For weekly/biweekly patterns
+  daysOfWeek?: DayOfWeek[]; // Which days visits occur
+  startTime?: string; // Time of day (HH:MM format)
+  endTime?: string; // Time of day (HH:MM format)
+
+  // For custom RRULE patterns (from imported ICS)
+  rrule?: string; // iCalendar RRULE string
+
+  // Metadata
+  notes?: string;
+  active: boolean; // Whether to auto-generate visits from this schedule
+  createdAt: string; // ISO datetime
+  updatedAt?: string; // ISO datetime
+};

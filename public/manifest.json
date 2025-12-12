@@ -1,14 +1,16 @@
 {
   "name": "DadTime - Co-Parenting Tracker",
   "short_name": "DadTime",
-  "description": "Track time, trips, and expenses for co-parenting with privacy-focused features",
+  "description": "Track time, trips, and expenses for co-parenting with privacy-focused features. Background GPS and timer tracking with wake lock support.",
   "start_url": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "background_color": "#00082D",
   "theme_color": "#1A66FF",
   "orientation": "portrait",
   "scope": "/",
-  "categories": ["lifestyle", "productivity"],
+  "categories": ["lifestyle", "productivity", "utilities"],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/icon-192.png",

@@ -7,10 +7,15 @@
  * - Service Workers
  * - LocalStorage persistence
  * - Web Notifications
+ * - Wake Lock API (keeps screen active during tracking)
  */
 
 import { storage } from './storage';
 import { showToast } from '../hooks/useToast';
+
+// Wake Lock API types (for TypeScript)
+// Using 'any' to avoid conflicts with browser's built-in WakeLock type
+type WakeLockSentinel = any;
 
 // ============================================================================
 // TYPES
@@ -79,6 +84,66 @@ export const clearBackgroundState = (): void => {
 };
 
 // ============================================================================
+// WAKE LOCK (keeps screen active during tracking)
+// ============================================================================
+
+let wakeLock: WakeLockSentinel | null = null;
+
+/**
+ * Request wake lock to keep screen active
+ * Prevents device from sleeping during active tracking
+ */
+export const requestWakeLock = async (): Promise<boolean> => {
+    // Check if Wake Lock API is supported
+    if (!('wakeLock' in navigator)) {
+        console.log('⚠️ Wake Lock API not supported on this browser');
+        return false;
+    }
+
+    try {
+        const nav = navigator as any;
+        wakeLock = await nav.wakeLock.request('screen');
+        console.log('🔆 Wake lock acquired - screen will stay active');
+
+        // Handle wake lock release (e.g., if user manually locks screen)
+        wakeLock.addEventListener('release', () => {
+            console.log('🔆 Wake lock released');
+            wakeLock = null;
+        });
+
+        return true;
+    } catch (error) {
+        console.error('Failed to request wake lock:', error);
+        return false;
+    }
+};
+
+/**
+ * Release wake lock
+ */
+export const releaseWakeLock = async (): Promise<void> => {
+    if (wakeLock && !wakeLock.released) {
+        try {
+            await wakeLock.release();
+            wakeLock = null;
+            console.log('🔆 Wake lock released manually');
+        } catch (error) {
+            console.error('Failed to release wake lock:', error);
+        }
+    }
+};
+
+/**
+ * Re-acquire wake lock if it was released
+ */
+const reacquireWakeLock = async (): Promise<void> => {
+    const state = getBackgroundState();
+    if ((state.timerActive || state.gpsActive) && (!wakeLock || wakeLock.released)) {
+        await requestWakeLock();
+    }
+};
+
+// ============================================================================
 // BACKGROUND TIMER
 // ============================================================================
 
@@ -98,6 +163,13 @@ export const startBackgroundTimer = (visitId: string, startTime: string): void =
 
     // Show toast notification
     showToast('Visit tracking will continue in background', 'info', 4000);
+
+    // Request wake lock to keep screen active
+    requestWakeLock().then(success => {
+        if (success) {
+            showToast('Screen will stay active during tracking', 'success', 3000);
+        }
+    });
 
     // Start interval to update timer every second
     if (timerInterval) {
@@ -147,6 +219,12 @@ export const stopBackgroundTimer = (): void => {
         timerStartTime: undefined,
         timerVisitId: undefined,
     });
+
+    // Release wake lock if no GPS tracking is active
+    const state = getBackgroundState();
+    if (!state.gpsActive) {
+        releaseWakeLock();
+    }
 };
 
 /**
@@ -182,6 +260,13 @@ export const startBackgroundGPS = (tripId: string): void => {
 
     // Show toast notification
     showToast('GPS tracking will continue in background', 'info', 4000);
+
+    // Request wake lock to keep screen active
+    requestWakeLock().then(success => {
+        if (success) {
+            showToast('Screen will stay active during GPS tracking', 'success', 3000);
+        }
+    });
 
     // Request geolocation permission and start watching
     if ('geolocation' in navigator) {
@@ -261,6 +346,11 @@ export const stopBackgroundGPS = (): void => {
         gpsTripId: undefined,
         lastGPSUpdate: undefined,
     });
+
+    // Release wake lock if no timer is active
+    if (!state.timerActive) {
+        releaseWakeLock();
+    }
 
     gpsBuffer = [];
 };
@@ -362,6 +452,9 @@ export const initPageVisibility = (): void => {
             }
         } else {
             console.log('📱 App visible - syncing state');
+
+            // Re-acquire wake lock if tracking is active
+            reacquireWakeLock();
 
             // Sync any buffered GPS data
             if (state.gpsActive && state.gpsTripId) {

@@ -259,10 +259,41 @@ textarea {
 .input-field:focus {
   outline: none;
   border-color: var(--color-primary);
+  border-width: 2px;
   background-color: #ffffff;
   box-shadow:
-    0 0 0 4px rgba(37, 99, 235, 0.08),
-    0 2px 8px -2px rgba(0, 0, 0, 0.08);
+    0 0 0 4px rgba(26, 102, 255, 0.12),
+    0 4px 12px -2px rgba(26, 102, 255, 0.15),
+    0 2px 4px rgba(0, 0, 0, 0.05);
+  transform: translateY(-1px);
+}
+
+/* iOS-style select dropdown */
+select.input-field {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23202020' d='M1.41 0L6 4.59L10.59 0L12 1.42L6 7.42L0 1.42z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 12px;
+  padding-right: 40px;
+  cursor: pointer;
+}
+
+select.input-field:focus {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%231A66FF' d='M1.41 0L6 4.59L10.59 0L12 1.42L6 7.42L0 1.42z'/%3E%3C/svg%3E");
+}
+
+/* Better keyboard handling on iOS */
+.input-field:focus-visible {
+  outline: none;
+}
+
+/* Textarea specific styles */
+textarea.input-field {
+  resize: vertical;
+  min-height: 100px;
+  line-height: 1.5;
 }
 
 /* Glass Nav */

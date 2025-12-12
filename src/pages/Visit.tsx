@@ -29,6 +29,7 @@ export const Visit: React.FC = () => {
     const [visitType, setVisitType] = useState<VisitType>('physical_care');
     const [notes, setNotes] = useState('');
     const [wakeLock, setWakeLock] = useState<WakeLockSentinel | null>(null);
+    const [shouldShake, setShouldShake] = useState(false);
 
     // Timer effect with background support
     useEffect(() => {
@@ -81,6 +82,8 @@ export const Visit: React.FC = () => {
         if (!selectedChildId && children.length > 0) {
             if (children.length > 0 && !selectedChildId) {
                 HapticFeedback.warning();
+                setShouldShake(true);
+                setTimeout(() => setShouldShake(false), 500);
                 alert('Please select a child');
                 return;
             }
@@ -145,6 +148,8 @@ export const Visit: React.FC = () => {
     const handleExportCalendar = () => {
         if (!activeVisit) return;
 
+        HapticFeedback.light();
+
         const startTime = activeVisit.startTime;
         const endTime = new Date().toISOString();
         const title = `Visit with ${children.find(c => c.id === activeVisit.childId)?.fullName || 'Child'}`;
@@ -197,7 +202,8 @@ export const Visit: React.FC = () => {
             {!activeVisit && (
                 <motion.div
                     initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
+                    animate={shouldShake ? { opacity: 1, x: [0, -10, 10, -10, 10, -5, 5, 0] } : { opacity: 1, x: 0 }}
+                    transition={shouldShake ? { duration: 0.5 } : { duration: 0.3 }}
                     className="space-y-4"
                 >
                     <div className="input-group">
@@ -205,7 +211,10 @@ export const Visit: React.FC = () => {
                         <select
                             className="input-field"
                             value={selectedChildId}
-                            onChange={(e) => setSelectedChildId(e.target.value)}
+                            onChange={(e) => {
+                                HapticFeedback.light();
+                                setSelectedChildId(e.target.value);
+                            }}
                         >
                             <option value="">Select Child...</option>
                             {children.map(c => (
@@ -222,7 +231,10 @@ export const Visit: React.FC = () => {
                                 <motion.button
                                     whileTap={{ scale: 0.95 }}
                                     key={type}
-                                    onClick={() => setVisitType(type)}
+                                    onClick={() => {
+                                        HapticFeedback.light();
+                                        setVisitType(type);
+                                    }}
                                     className={`py-3 px-4 rounded-xl text-xs font-semibold capitalize transition-colors ${visitType === type ? 'bg-[#1A66FF] text-white' : 'bg-white border border-[#EFEFEF] text-[#202020]'}`}
                                 >
                                     {type.replace(/_/g, ' ')}

@@ -6,6 +6,7 @@ import { differenceInSeconds, differenceInMinutes } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapContainer, TileLayer, Marker, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import { HapticFeedback } from '../utils/ios';
 import {
     startBackgroundGPS,
     stopBackgroundGPS,
@@ -51,6 +52,7 @@ export const Trips: React.FC = () => {
     const [classification, setClassification] = useState<'child' | 'personal'>('child');
     const [selectedChildId, setSelectedChildId] = useState<string>('');
     const [purpose, setPurpose] = useState<TripPurpose>('pickup');
+    const [shouldShake, setShouldShake] = useState(false);
 
     // Timer effect
     useEffect(() => {
@@ -101,9 +103,12 @@ export const Trips: React.FC = () => {
 
     const handleStart = () => {
         if (!currentLocation) {
+            HapticFeedback.warning();
             alert('Waiting for GPS location...');
             return;
         }
+
+        HapticFeedback.success();
 
         addTrip({
             childId: 'pending', // Will be set on completion
@@ -118,6 +123,7 @@ export const Trips: React.FC = () => {
 
     const handleStop = () => {
         if (activeTrip && currentLocation) {
+            HapticFeedback.success();
             setPendingTripData({
                 endTime: new Date().toISOString(),
                 endLocation: currentLocation,
@@ -137,6 +143,7 @@ export const Trips: React.FC = () => {
         const mileageRatePerMile = 0.70; // $0.70 per mile
 
         if (classification === 'personal') {
+            HapticFeedback.success();
             updateTrip(activeTrip.id, {
                 ...pendingTripData,
                 purpose: 'other_child_related',
@@ -147,10 +154,14 @@ export const Trips: React.FC = () => {
         } else {
             // Child related - calculate reimbursement
             if (!selectedChildId && children.length > 0) {
+                HapticFeedback.warning();
+                setShouldShake(true);
+                setTimeout(() => setShouldShake(false), 500);
                 alert('Please select a child');
                 return;
             }
 
+            HapticFeedback.success();
             const reimbursableAmount = pendingTripData.distance * mileageRatePerMile;
 
             updateTrip(activeTrip.id, {
@@ -256,8 +267,9 @@ export const Trips: React.FC = () => {
                     >
                         <motion.div
                             initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
+                            animate={shouldShake ? { scale: 1, opacity: 1, x: [0, -10, 10, -10, 10, -5, 5, 0] } : { scale: 1, opacity: 1, x: 0 }}
                             exit={{ scale: 0.9, opacity: 0 }}
+                            transition={shouldShake ? { duration: 0.5 } : { duration: 0.3 }}
                             className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl"
                         >
                             <h3 className="text-lg font-bold mb-4 text-center">Trip Complete!</h3>
@@ -268,13 +280,19 @@ export const Trips: React.FC = () => {
 
                             <div className="flex gap-3 mb-6">
                                 <button
-                                    onClick={() => setClassification('child')}
+                                    onClick={() => {
+                                        HapticFeedback.light();
+                                        setClassification('child');
+                                    }}
                                     className={`flex-1 py-3 rounded-xl border-2 font-semibold transition-colors ${classification === 'child' ? 'border-[#1A66FF] bg-[#1A66FF1A] text-[#1A66FF]' : 'border-[#EFEFEF] text-[#202020] opacity-60'}`}
                                 >
                                     Yes, Child
                                 </button>
                                 <button
-                                    onClick={() => setClassification('personal')}
+                                    onClick={() => {
+                                        HapticFeedback.light();
+                                        setClassification('personal');
+                                    }}
                                     className={`flex-1 py-3 rounded-xl border-2 font-semibold transition-colors ${classification === 'personal' ? 'border-[#1A66FF] bg-[#1A66FF1A] text-[#1A66FF]' : 'border-[#EFEFEF] text-[#202020] opacity-60'}`}
                                 >
                                     No, Personal
@@ -288,7 +306,10 @@ export const Trips: React.FC = () => {
                                         <select
                                             className="input-field"
                                             value={selectedChildId}
-                                            onChange={(e) => setSelectedChildId(e.target.value)}
+                                            onChange={(e) => {
+                                                HapticFeedback.light();
+                                                setSelectedChildId(e.target.value);
+                                            }}
                                         >
                                             <option value="">Select Child...</option>
                                             {children.map(c => (
@@ -302,7 +323,10 @@ export const Trips: React.FC = () => {
                                             {(['pickup', 'dropoff', 'medical', 'activity'] as TripPurpose[]).map(p => (
                                                 <button
                                                     key={p}
-                                                    onClick={() => setPurpose(p)}
+                                                    onClick={() => {
+                                                        HapticFeedback.light();
+                                                        setPurpose(p);
+                                                    }}
                                                     className={`py-2 px-3 rounded-xl text-xs font-semibold capitalize transition-colors ${purpose === p ? 'bg-[#1A66FF] text-white' : 'bg-white border border-[#EFEFEF] text-[#202020]'}`}
                                                 >
                                                     {p}
@@ -314,7 +338,15 @@ export const Trips: React.FC = () => {
                             )}
 
                             <div className="flex gap-3">
-                                <button onClick={() => setShowModal(false)} className="flex-1 py-3 px-4 rounded-full border border-[#EFEFEF] text-[#202020] font-semibold">Cancel</button>
+                                <button
+                                    onClick={() => {
+                                        HapticFeedback.light();
+                                        setShowModal(false);
+                                    }}
+                                    className="flex-1 py-3 px-4 rounded-full border border-[#EFEFEF] text-[#202020] font-semibold"
+                                >
+                                    Cancel
+                                </button>
                                 <button onClick={confirmClassification} className="flex-1 py-3 px-4 rounded-full bg-[#1A66FF] text-white font-semibold">Save Trip</button>
                             </div>
                         </motion.div>

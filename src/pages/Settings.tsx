@@ -4,6 +4,8 @@ import { useEntity } from '../hooks/useEntity';
 import type { ParentProfile, Child } from '../types';
 import { motion } from 'framer-motion';
 import { LocationPresetManager } from '../components/LocationPresetManager';
+import { CustodyScheduleManager } from '../components/CustodyScheduleManager';
+import { CalendarImport } from '../components/CalendarImport';
 import {
     getAutomationSettings,
     updateAutomationSettings,
@@ -381,6 +383,17 @@ export const Settings: React.FC = () => {
                         </div>
                     </div>
                 </div>
+            </motion.div>
+
+            {/* Custody Schedules */}
+            <motion.div layout className="border border-[#EFEFEF] rounded-2xl p-4 bg-white">
+                <CustodyScheduleManager children={children} />
+            </motion.div>
+
+            {/* Calendar Import */}
+            <motion.div layout className="border border-[#EFEFEF] rounded-2xl p-4 bg-white">
+                <h3 className="font-semibold mb-4 text-[#00082D]">Import Calendar</h3>
+                <CalendarImport children={children} />
             </motion.div>
 
             {/* Location Presets */}

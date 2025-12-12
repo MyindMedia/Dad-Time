@@ -9,6 +9,7 @@ import { motion } from 'framer-motion';
 import { AnimatedCard } from '../components/animated/AnimatedCard';
 import { AnimatedList } from '../components/animated/AnimatedList';
 import { springConfig } from '../lib/animations';
+import { CalendarWidget } from '../components/CalendarWidget';
 
 export const Home: React.FC = () => {
     const navigate = useNavigate();
@@ -214,6 +215,11 @@ export const Home: React.FC = () => {
                             </div>
                         </button>
                     ))}
+                </div>
+
+                {/* Calendar Widget */}
+                <div className="mb-6">
+                    <CalendarWidget />
                 </div>
 
                 {/* Task Today */}
